@@ -1,0 +1,3 @@
+dataType String
+dataType Int
+dataType MySpecialType
