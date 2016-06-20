@@ -14,6 +14,7 @@ import org.eclipse.xtext.web.server.model.IXtextWebDocument;
 import org.eclipse.xtext.web.server.model.XtextWebDocument;
 import org.eclipse.xtext.web.server.persistence.FileResourceHandler;
 import org.eclipse.xtext.web.server.persistence.IResourceBaseProvider;
+import org.eclipse.xtext.xbase.lib.InputOutput;
 
 @SuppressWarnings("all")
 public class IndexBuildingFileResourceHandler extends FileResourceHandler {
@@ -36,7 +37,7 @@ public class IndexBuildingFileResourceHandler extends FileResourceHandler {
     super.put(document, serviceContext);
     String _resourceId = document.getResourceId();
     final URI uri = this.resourceBaseProvider.getFileURI(_resourceId);
-    final ResourceSet rs = this.rsProvider.get("", serviceContext);
+    final ResourceSet rs = this.rsProvider.get("dummy", serviceContext);
     final ResourceDescriptionsData index = ResourceDescriptionsData.ResourceSetAdapter.findResourceDescriptionsData(rs);
     IResourceDescription _resourceDescription = index.getResourceDescription(uri);
     boolean _notEquals = (!Objects.equal(_resourceDescription, null));
@@ -46,5 +47,8 @@ public class IndexBuildingFileResourceHandler extends FileResourceHandler {
     final Resource resource = rs.getResource(uri, true);
     final IResourceDescription desc = this.manager.getResourceDescription(resource);
     index.addDescription(uri, desc);
+    String _string = uri.toString();
+    String _plus = ("Indexed " + _string);
+    InputOutput.<String>println(_plus);
   }
 }

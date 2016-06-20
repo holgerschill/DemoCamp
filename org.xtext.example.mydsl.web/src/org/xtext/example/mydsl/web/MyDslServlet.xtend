@@ -23,6 +23,13 @@ import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.web.server.persistence.ResourceBaseProviderImpl
 import org.eclipse.xtext.web.servlet.XtextServlet
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsData
+import java.util.Enumeration
+import java.util.Set
+import org.eclipse.emf.common.util.WrappedException
+import com.google.common.collect.Sets
+import com.google.common.base.Predicate
+import java.util.zip.ZipFile
+import java.util.zip.ZipEntry
 
 /**
  * Deploy this class into a servlet container to enable DSL-specific services.
@@ -32,6 +39,7 @@ class MyDslServlet extends XtextServlet {
 	
 	val List<ExecutorService> executorServices = newArrayList
 	String base = '/Users/schill/Documents/Conferences/Democamp/Zuerich2016/DemoCamp/org.xtext.example.mydsl.web/files'
+	String lib = '/Users/schill/Documents/Conferences/Democamp/Zuerich2016/DemoCamp/org.xtext.example.mydsl.web/files/lib.jar'
 //	String base = './files'
 	override init() {
 		super.init()
@@ -41,9 +49,10 @@ class MyDslServlet extends XtextServlet {
 		val injector = new MyDslWebSetup(executorServiceProvider,resourceBaseProvider, index).createInjectorAndDoEMFRegistration()
 		
 		val rs = new XtextResourceSet
-		val fileURIs = collectResources(newArrayList(base), rs)
+		val fileURIs = collectResources(newArrayList(base,lib), rs)
 		val manager = injector.getInstance(IResourceDescription.Manager)
 		for(URI uri : fileURIs){
+			println("Indexed " + uri.toString)
 			val resource = rs.getResource(uri,true)
 			val desc = manager.getResourceDescription(resource)
 			index.addDescription(uri,desc)
@@ -62,55 +71,16 @@ class MyDslServlet extends XtextServlet {
 		nameBasedFilter.setRegularExpression(".*\\.(?:(" + extensions + "))$");
 		val List<URI> resources = newArrayList();
 
-		val modelsFound = new PathTraverser().resolvePathes(
+		new PathTraverser().resolvePathes(
 			roots.toList,
 			[ input |
 				val matches = nameBasedFilter.matches(input)
 				if (matches) {
-					
 					resources.add(input);
 				}
 				return matches
 			]
 		)
-		modelsFound.asMap.forEach [ uri, resource |
-			val file = new File(uri)
-			if (resource != null && !file.directory && file.name.endsWith(".jar")) {
-				registerBundle(file)
-			}
-		]
 		return resources;
-	}
-	
-	def protected registerBundle(File file) {
-		var JarFile jarFile = null;
-		try {
-			jarFile = new JarFile(file);
-			val Manifest manifest = jarFile.getManifest();
-			if (manifest == null)
-				return;
-			var String name = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
-			if (name != null) {
-				val int indexOf = name.indexOf(';');
-				if (indexOf > 0)
-					name = name.substring(0, indexOf);
-				if (EcorePlugin.getPlatformResourceMap().containsKey(name))
-					return;
-				val String path = "archive:" + file.toURI() + "!/";
-				val URI uri = URI.createURI(path);
-				EcorePlugin.getPlatformResourceMap().put(name, uri);
-			}
-		} catch (ZipException e) {
-			
-		} catch (Exception e) {
-			
-		} finally {
-			try {
-				if (jarFile != null)
-					jarFile.close();
-			} catch (IOException e) {
-				
-			}
-		}
 	}
 }

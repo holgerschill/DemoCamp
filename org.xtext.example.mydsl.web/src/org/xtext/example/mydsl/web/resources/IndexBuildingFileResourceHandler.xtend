@@ -26,13 +26,13 @@ class IndexBuildingFileResourceHandler extends FileResourceHandler {
 	override put(IXtextWebDocument document, IServiceContext serviceContext) throws IOException {
 		super.put(document,serviceContext)
 		val uri = resourceBaseProvider.getFileURI(document.resourceId)
-		
-		val rs = rsProvider.get("",serviceContext)
+		val rs = rsProvider.get("dummy",serviceContext)
 		val index = ResourceDescriptionsData.ResourceSetAdapter.findResourceDescriptionsData(rs) 
 		if(index.getResourceDescription(uri) != null)
 			index.removeDescription(uri)
 		val resource = rs.getResource(uri,true)
 		val desc = manager.getResourceDescription(resource)
 		index.addDescription(uri,desc)
+		println("Indexed " + uri.toString)
 	}	
 }

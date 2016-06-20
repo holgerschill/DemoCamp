@@ -31,6 +31,7 @@
 				$("#change-resource").change(function() {
 					var resourceId = $("#change-resource option:selected").attr("value");
 					editor.xtextServices.serviceBuilder.changeResource(resourceId);
+					editor.xtextServices.update({forceUpdate: true});
 				});
 			});
 		});
